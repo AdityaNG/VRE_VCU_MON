@@ -2,6 +2,13 @@
 
 A robust bluetooth serial controller to display accelerometer data, CAN data, SD card logs, live graphs and remote shutdown the car
 
+## TODO
+
+1. UI - Console
+2. UI - Graphing
+3. Console API
+4. Graphing API
+
 ## Data format
 
 The commands are issued with options and terminated with a semi-colon. The output is also sent in a similar format.
