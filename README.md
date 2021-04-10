@@ -1,5 +1,9 @@
 # Bluetooth Serial Controller
 
+<img src="imgs/console.png">
+
+<img src="imgs/graph.png">
+
 A robust bluetooth serial controller to display accelerometer data, CAN data, SD card logs, live graphs and remote shutdown the car
 
 ## TODO

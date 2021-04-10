@@ -24,16 +24,17 @@ def render_data(data, keys=['ax', 'ay', 'az', 'gx', 'gy', 'gz']):
         fig.suptitle('Vertically stacked subplots')
     for k in keys:
         if k not in data:
+            print("Empty")
             return
     for k in keys:
-        print(k + ":" + data[k], end=", ")
+        #print(k + ":" + data[k], end=", ")
         history.setdefault(k, [])
         history[k].append(data[k])
         if len(history[k])>50:
             history[k].pop(0)
     print()
-
     for i,k in enumerate(keys):
+        print(k, history[k])
         axs[i].plot(history[k])
         axs[i].set_title(k)
         #plt.plot(1)  
