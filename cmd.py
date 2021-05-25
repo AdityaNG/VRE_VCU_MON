@@ -5,9 +5,16 @@ import time
 
 from evdev import InputDevice, categorize, ecodes, list_devices
 
+import argparse
+parser = argparse.ArgumentParser(description='Controller input for driving the car')
+parser.add_argument('-d', '--device', help='Specify the input device as /dev/input/eventi')
+args = parser.parse_args()
 
 if False:
-    gamepad = InputDevice(list_devices()[0])
+    if args.device:
+        gamepad = InputDevice(args.device)
+    else:
+        gamepad = InputDevice(list_devices()[0])
     while True:
         for event in gamepad.read_loop():
             print(event.code, event.type, event.value)
