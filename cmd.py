@@ -2,83 +2,42 @@ from CAR_API import Car
 
 car = Car()
 import time
-import curses
-from curses import wrapper
-from curses.textpad import Textbox, rectangle
 
-import threading
+from evdev import InputDevice, categorize, ecodes, list_devices
 
-global car_data, car_reply
-car_data = {}
-car_reply = ""
 
-global exit_sig
-exit_sig = False
-def data_loop(stdscr):
-    old_reply = ""
+if False:
+    gamepad = InputDevice(list_devices()[0])
     while True:
-        car_data, car_reply = car.get_data()
-        time.sleep(0.1)
-        if old_reply != car_reply:
-            y,x = stdscr.getyx() 
-            stdscr.addstr(1, 0, "[car]     <<< " + str(car_reply))
-            stdscr.move(y, x)
-            stdscr.refresh()
-            old_reply = car_reply
+        for event in gamepad.read_loop():
+            print(event.code, event.type, event.value)
+            print( ( (event.value-2**15) ) )
 
-        if exit_sig:
-            break
+gamepad = InputDevice(list_devices()[0])
+throttle = 0
+steering = 0
+old_accel = ""
+old_steer = ""
+while True:
 
-def main(stdscr):
-    global car_data, car_reply
-    global exit_sig
+    for event in gamepad.read_loop():
+        #print(event.code, event.type, event.value)
+        if event.type == 1:
+            if event.code == 315: # start
+                car.start()
+                print("="*5, "start", "="*5)
+            else:
+                car.stop()
+        if event.type == 3: # analog
+            if event.code == 9: # RT
+                throttle = int(event.value * 100 / 2**16)
+            elif event.code == 10: # LT
+                throttle = -int(event.value * 100 / 2**16)
 
-    curses.beep()
+            if event.code == 0: # A1x
+                steering = int((event.value-2**15) * 100 / 2**15)
+            
+        print(throttle, steering)
+        car.actuate(throttle, steering)
 
-    stdscr.clear()
-    stdscr.refresh()
-    
-    data_loop_thread = threading.Thread(target=data_loop, args=(stdscr,) )
-    data_loop_thread.start()
-
-    while True:
-        
-        stdscr.clear()
-        height, width = stdscr.getmaxyx()
-        stdscr.refresh()
-        
-        #stdscr.addstr(1, 0, "[car]     <<< " + str(car_reply))
-        stdscr.addstr(0, 0, "[console] >>> ")
-
-        editwin = curses.newwin(1,30, 0,14)
-        #rectangle(stdscr, 1,0, 1+5+1, 1+30+1)
-
-        stdscr.refresh()
-
-        box = Textbox(editwin)
-
-        # Let the user edit until Ctrl-G is struck.
-        message = box.edit()
-
-        message = message.strip()
-        #curses.flash()
-
-        # Get resulting contents
-        #message = box.gather()
-        if "exit" in message:
-            exit_sig = True
-            data_loop_thread.join()
-            exit()
-
-        car.send_command(message)
-        #stdscr.timeout(1000)
-        #time.sleep(0.5)
-
-
-    
-
-
-wrapper(main)
-
-exit()
 
