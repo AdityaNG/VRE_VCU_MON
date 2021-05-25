@@ -64,6 +64,7 @@ blue = (0, 0, 128)
 
 MAX_CURRENT_L = 0
 MAX_CURRENT_R = 0
+CURRENT_LIMIT = 2000
 
 pygame.joystick.init()
 joysticks = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
@@ -111,8 +112,8 @@ def draw_win():
     if cur_r > min_cutoff:
         cur_r_w -= min_cutoff
 
-    pygame.draw.rect(win, ( int(255 * cur_l/4095), int(255 * (1 - cur_l/4095) ) , 0) , pygame.Rect(0, 0, int(width * cur_l_w/(4095-min_cutoff)), 50))
-    pygame.draw.rect(win, ( int(255 * cur_r/4095), int(255 * (1 - cur_r/4095) ) , 0) , pygame.Rect(0, 100, int(width * cur_r_w/(4095-min_cutoff)), 50))
+    pygame.draw.rect(win, ( int(255 * (cur_l_w)/(4095-min_cutoff)), int(255 * (1 - cur_l_w/(4095-min_cutoff)) ) , 0) , pygame.Rect(0, 0, int(width * cur_l_w/(4095-min_cutoff)), 50))
+    pygame.draw.rect(win, ( int(255 * (cur_r_w)/(4095-min_cutoff)), int(255 * (1 - cur_r_w/(4095-min_cutoff)) ) , 0) , pygame.Rect(0, 100, int(width * cur_r_w/(4095-min_cutoff)), 50))
     pygame.display.flip()
     
     pygame.display.update()
@@ -149,6 +150,10 @@ while 1 :
                 inp = "start;"
                 send_command(inp)
                 print("=========start==========")
+            elif event.button == 1: # b
+                CURRENT_LIMIT = (CURRENT_LIMIT + 500) % 4095
+                print("CURRENT_LIMIT: " + str(CURRENT_LIMIT))
+                send_command("CURRENT_LIMIT " + str(CURRENT_LIMIT).zfill(4) + ";")
             elif event.button == 4: # y
                 creep_mode = 0
             elif event.button == 7: # RB
