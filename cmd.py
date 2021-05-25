@@ -10,17 +10,17 @@ parser = argparse.ArgumentParser(description='Controller input for driving the c
 parser.add_argument('-d', '--device', help='Specify the input device as /dev/input/eventi')
 args = parser.parse_args()
 
+if args.device:
+    gamepad = InputDevice(args.device)
+else:
+    gamepad = InputDevice(list_devices()[0])
+
 if False:
-    if args.device:
-        gamepad = InputDevice(args.device)
-    else:
-        gamepad = InputDevice(list_devices()[0])
     while True:
         for event in gamepad.read_loop():
             print(event.code, event.type, event.value)
             print( ( (event.value-2**15) ) )
 
-gamepad = InputDevice(list_devices()[0])
 throttle = 0
 steering = 0
 old_accel = ""
