@@ -14,8 +14,8 @@ pygame.display.set_mode()
 global win
 throttle=0
 steering=0
-MAX_TH = 100
-MAX_ST = 100
+MAX_TH = 255 * 0.5
+MAX_ST = 255
 creep_mode = 0
 width = 500
 win = pygame.display.set_mode((width, width))
@@ -108,8 +108,11 @@ while 1 :
             if event.button == 7 or event.button == 6: # RB or LB
                 #creep_mode = 0
                 pass
+            elif event.button == 3: # x
+                car.regen = False
         if event.type == pygame.JOYBUTTONDOWN:
             j = event.joy, event.button
+            print(j)
             if event.button == 11: # Start
                 car.start()
                 print("=========start==========")
@@ -124,6 +127,9 @@ while 1 :
                 creep_mode = 1
             elif event.button == 6: # LB
                 creep_mode = -1
+            elif event.button == 3: # x
+                car.regen = True
+
             elif event.button == 0: # A
                 throttle = 0
                 creep_mode = 0
@@ -180,7 +186,7 @@ while 1 :
     else:
         car.actuate(throttle, steering)
     
-    pygame.time.delay(200)
+    pygame.time.delay(10)
     data = car.get_data()
     draw_win()
     # {'ax': 1788.0, ' ay': 512.0, ' az': -15148.0, ' gx': 263.0, ' gy': -212.0, ' gz': 183.0, ' CURRENT_DRAW_L': 1616.0, ' CURRENT_DRAW_R': 1918.0, ' throttle_val': 1.0, ' steering_val': 0.0, ' RTC_TIME': 0.0}

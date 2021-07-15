@@ -9,12 +9,39 @@ class Car:
         self.p_th = 0
         self.prev_cmd = ""
         self.data = {}
-        self.chase = 0.5
+        self.chase = 0.1
         self.prev_actuate = ""
         self.is_connected = False
         self.last_sent_time = 0
         self.connect()
         self.test_connection()
+        
+        self.throttle   = 0
+        self.reverse    = False
+        self.left       = False
+        self.steering   = 0
+        self.shutdown   = True # False to engage HV
+        self.log        = False
+        self.regen      = False
+        self.current    = 3000
+        self.parity     = False
+    
+    def command_to_bytes(self):
+        b0 = b';'
+        b1 = self.reverse.to_bytes(1, 'big')
+        b2 = self.throttle.to_bytes(1, 'big')
+        b3 = self.steering.to_bytes(1, 'big')
+        b4_t = self.shutdown<<7 ^ self.parity<<6 ^ self.log<<5 ^ self.regen<<4 ^ self.current>>8
+        b4 = b4_t.to_bytes(1, 'big')
+        b5 = self.current.to_bytes(2, 'big')[1].to_bytes(1, 'big')
+        b6 = b';'
+
+        b0 = ord(';')
+        b1 = self.shutdown<<7 ^ self.parity<<6 ^ self.log<<5 ^ self.regen<<4 ^ self.left<<1 ^ self.reverse<<0
+        b2 = self.throttle
+        b3 = self.steering
+        b4 = ord(';')
+        return bytearray([b0, b1, b2, b3])
 
     def connect(self):
         self.ser = serial.Serial(
@@ -55,9 +82,11 @@ class Car:
         return self.data, out.replace("\r", "").strip()
 
     def start(self):
+        self.shutdown = False
         self.send_command("start;")
 
     def stop(self):
+        self.shutdown = True;
         self.send_command("stop;")
 
     def set_CURRENT_LIMIT(self, CURRENT_LIMIT):
@@ -67,6 +96,11 @@ class Car:
     def actuate(self, th, st):
         th_n = int((th-self.p_th)*self.chase + self.p_th)
         self.p_th = th_n
+
+        self.throttle = int(abs(th_n))
+        self.steering = int(abs(st))
+        self.reverse = bool(th_n<0)
+        self.left = bool(st<0)
 
         if th == 0 and False:
             self.p_th = 0
@@ -79,7 +113,14 @@ class Car:
             self.prev_actuate = cmd
             return self.send_command(cmd)
     
+    def print_bytes(self, b):
+        for bi in b:
+            print(bi, ' ', end='')
+        print()
+
     def send_command(self, inp):
+        b = self.command_to_bytes()
+        #self.print_bytes(b)
         sent = False
         inp = ';' + inp
         now = time.time()
@@ -87,6 +128,30 @@ class Car:
             return False, ({}, 'DISCONNECTED')
         #if self.prev_cmd != inp or now - self.last_sent_time > 0.05:
         if self.prev_cmd != inp:
+            try:
+                #print(">>>", inp)
+                self.last_sent_time = now
+                #self.ser.write(str(inp + '\r').encode('utf-8'))    
+                self.ser.write(b)
+                self.prev_cmd = str(b)
+                sent = True
+                self.is_connected = True
+            except Exception as e:
+                print("Connection Error : " + str(e))
+                sent = False
+                self.is_connected = False
+        else:
+            sent = True
+        return sent, self.get_data()
+
+    def send_command_old(self, inp):
+        sent = False
+        inp = ';' + inp
+        now = time.time()
+        if not self.is_connected:
+            return False, ({}, 'DISCONNECTED')
+        if self.prev_cmd != inp or now - self.last_sent_time > 0.01:
+        #if self.prev_cmd != inp:
             try:
                 print(">>>", inp)
                 self.last_sent_time = now
