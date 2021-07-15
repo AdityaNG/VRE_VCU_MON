@@ -196,6 +196,11 @@ while 1 :
                 steering = 0
             elif event.key == pygame.K_d:
                 steering = 0
+            
+            if event.key == pygame.K_o:
+                send_command('start;')
+            elif event.key == pygame.K_p:
+                send_command('stop;')
         
         # get keyboard inp
         #inp = input(">> ")

@@ -119,6 +119,7 @@ while 1 :
                 car.set_CURRENT_LIMIT(CURRENT_LIMIT)
             elif event.button == 4: # y
                 creep_mode = 0
+                throttle = 0
             elif event.button == 7: # RB
                 creep_mode = 1
             elif event.button == 6: # LB
@@ -147,6 +148,15 @@ while 1 :
             
             if event.key == pygame.K_q:
                 exit()
+
+            if event.key == pygame.K_x:
+                creep_mode = -1
+            elif event.key == pygame.K_v:
+                creep_mode = 1
+            if event.key == pygame.K_c:
+                creep_mode = 0
+                throttle = 0
+
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_w:
                 throttle = 0
@@ -157,6 +167,15 @@ while 1 :
                 steering = 0
             elif event.key == pygame.K_d:
                 steering = 0
+            
+            if event.key == pygame.K_o:
+                car.start()
+            elif event.key == pygame.K_p:
+                car.stop()
+            
+            if event.key == pygame.K_x or event.key == pygame.K_v:
+                creep_mode = 0
+                throttle = 0
         
     else:
         car.actuate(throttle, steering)

@@ -4,24 +4,42 @@ import serial
 class Car:
 
     def __init__(self, port='/dev/rfcomm0', baudrate=115200):
-        self.ser = serial.Serial(
-            port=port,
-            baudrate=baudrate,
-            parity=serial.PARITY_ODD,
-            stopbits=serial.STOPBITS_TWO,
-            bytesize=serial.SEVENBITS
-        )
-
-        self.ser.isOpen()
+        self.port = port
+        self.baudrate = baudrate
         self.p_th = 0
         self.prev_cmd = ""
         self.data = {}
         self.chase = 0.5
+        self.prev_actuate = ""
+        self.is_connected = False
+        self.last_sent_time = 0
+        self.connect()
+        self.test_connection()
+
+    def connect(self):
+        self.ser = serial.Serial(
+            port=self.port,
+            baudrate=self.baudrate,
+            parity=serial.PARITY_ODD,
+            stopbits=serial.STOPBITS_TWO,
+            bytesize=serial.SEVENBITS
+        )
+        self.ser.isOpen()
+
+    def test_connection(self):
+        self.data = {}
+        self.get_data()
+        self.is_connected = self.data == {}
+        return self.is_connected
     
     def get_data(self):
         out = ""
         while self.ser.inWaiting() > 0:
-            out += self.ser.read(1).decode('utf-8')
+            reading = self.ser.read(1)
+            print(reading.decode('utf-8'), end='')
+            out += reading.decode('utf-8')
+        if out!= '':
+            print()
 
         if out != '':
             self.data = {}
@@ -57,17 +75,30 @@ class Car:
         th_str = ('-' if (th_n<0) else'+' ) + str(abs(th_n)).zfill(3)
         st_str = ('-' if (st<0) else'+' ) + str(abs(st)).zfill(3)
         cmd = "actuate " + th_str + " " + st_str + ";"
-        self.send_command(cmd)
+        if self.prev_actuate != cmd or True:
+            self.prev_actuate = cmd
+            return self.send_command(cmd)
     
     def send_command(self, inp):
         sent = False
+        inp = ';' + inp
+        now = time.time()
+        if not self.is_connected:
+            return False, ({}, 'DISCONNECTED')
+        #if self.prev_cmd != inp or now - self.last_sent_time > 0.05:
         if self.prev_cmd != inp:
             try:
+                print(">>>", inp)
+                self.last_sent_time = now
                 self.ser.write(str(inp + '\r').encode('utf-8'))    
                 self.prev_cmd = inp
                 sent = True
+                self.is_connected = True
             except Exception as e:
                 print("Connection Error : " + str(e))
                 sent = False
-        return sent
+                self.is_connected = False
+        else:
+            sent = True
+        return sent, self.get_data()
 
