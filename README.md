@@ -34,10 +34,10 @@ data = car.get_data()
 
 ## TODO
 
-1. UI - Console
-2. UI - Graphing
-3. Console API
-4. Live Graphing of data
+1. Live Graphing of data
+2. Safety Start/Stop UI and Audio indicators
+3. Command Line access to vehicle
+4. Reliability testing
 
 ## Data format
 
@@ -45,7 +45,12 @@ Data fromat is 4 bytes of the following format
 
 ```python
 b0 = ord(';')
-b1 = self.shutdown<<7 ^ self.parity<<6 ^ self.log<<5 ^ self.regen<<4 ^ self.left<<1 ^ self.reverse<<0
+b1 = 	self.shutdown<<7 	^ 
+	self.parity<<6 		^ 
+	self.log<<5 		^ 
+	self.regen<<4 		^ 
+	self.left<<1 		^ 
+	self.reverse<<0
 b2 = self.throttle
 b3 = self.steering
 
