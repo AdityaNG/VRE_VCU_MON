@@ -6,16 +6,51 @@
 
 A robust bluetooth serial controller to display accelerometer data, CAN data, SD card logs, live graphs and remote shutdown the car
 
+## Usage
+```python
+from CAR_API import Car        
+car = Car()
+
+# To engage TS
+car.start()
+
+# To disengage TS
+car.stop()
+
+# To actuate
+car.actuate(throttle, steering)
+
+# To enable regen
+car.regen = True
+
+# Get data from car
+data = car.get_data()
+"""
+	data is a dict of the format 
+	 {'ax': 1788.0, ' ay': 512.0, ' az': -15148.0, ' gx': 263.0, ' gy': -212.0, ' gz': 183.0, ' CURRENT_DRAW_L': 1616.0, ' CURRENT_DRAW_R': 1918.0, ' throttle_val': 1.0, ' steering_val': 0.0, ' RTC_TIME': 0.0}
+"""
+
+```
+
 ## TODO
 
 1. UI - Console
 2. UI - Graphing
 3. Console API
-4. Graphing API
+4. Live Graphing of data
 
 ## Data format
 
-The commands are issued with options and terminated with a semi-colon. The output is also sent in a similar format.
+Data fromat is 4 bytes of the following format
+
+```python
+b0 = ord(';')
+b1 = self.shutdown<<7 ^ self.parity<<6 ^ self.log<<5 ^ self.regen<<4 ^ self.left<<1 ^ self.reverse<<0
+b2 = self.throttle
+b3 = self.steering
+
+bytearray([b0, b1, b2, b3])
+```
 
 ## Setup and Dependencies
 

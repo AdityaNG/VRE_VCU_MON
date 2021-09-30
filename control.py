@@ -2,15 +2,19 @@ import time
 import serial
 
 # configure the serial connections (the parameters differs on the device you are connecting to)
-ser = serial.Serial(
-    port='/dev/rfcomm0',
-    baudrate=115200,
-    parity=serial.PARITY_ODD,
-    stopbits=serial.STOPBITS_TWO,
-    bytesize=serial.SEVENBITS
-)
+try:
+    ser = serial.Serial(
+        port='/dev/rfcomm0',
+        baudrate=115200,
+        parity=serial.PARITY_ODD,
+        stopbits=serial.STOPBITS_TWO,
+        bytesize=serial.SEVENBITS
+    )
 
-ser.isOpen()
+    ser.isOpen()
+except:
+    ser = None
+    print("Could not connect")
 
 import pygame
 pygame.init()
@@ -38,8 +42,9 @@ def send_command(inp):
     sent = False
     while not sent:
         try:
-            ser.write(str(inp + '\r').encode('utf-8'))
-            sent = True
+            if ser:
+                ser.write(str(inp + '\r').encode('utf-8'))
+                sent = True
         except Exception as e:
             print("Connection Error : " + str(e))
             time.sleep(1)
@@ -125,7 +130,8 @@ while 1 :
     for event in pygame.event.get():
         #print(event)
         if event.type == pygame.QUIT:
-            ser.close()
+            if ser:
+                ser.close()
             pygame.quit() #sys.exit() if sys is imported
             exit()
         if event.type == pygame.JOYAXISMOTION:
@@ -207,7 +213,8 @@ while 1 :
             # Python 3 users
             # inp = inp(">> ")
     if inp == 'exit':
-        ser.close()
+        if ser:
+            ser.close()
         exit()
     else:
         if inp!="start;" and event!="stop;":
@@ -232,8 +239,9 @@ while 1 :
     #time.sleep(0.1)
     pygame.time.delay(200)
     out = ""
-    while ser.inWaiting() > 0:
-        out += ser.read(1).decode('utf-8')
+    if ser:
+        while ser.inWaiting() > 0:
+            out += ser.read(1).decode('utf-8')
 
     if out != '':
         data = {}
